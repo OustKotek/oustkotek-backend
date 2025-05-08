@@ -41,7 +41,7 @@ export const logout = (req: Request, res: Response): Response => {
 
 export const getMe = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const user = await User.findById((req?.user)?.id as string).select('-password');
+    const user = await User.findById((req?.user)?._id as string).select('-password');
     if (!user) return res.status(404).json({ message: "User not found" });
     return res.json(user);
   } catch (error) {
