@@ -33,21 +33,36 @@ const login = async (req, res) => {
         return res.status(401).json({ message: 'Invalid credentials' });
     }
     const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.cookie('token', token, { httpOnly: true }).json({ user });
+    return res.cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
+    }).json({ user });
 };
 exports.login = login;
 const logout = (req, res) => {
-    return res.clearCookie('token').json({ message: 'Logged out' });
+    return res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true
+    }).json({ message: 'Logged out' });
 };
 exports.logout = logout;
 const getMe = async (req, res) => {
     try {
-        const user = await user_model_1.User.findById((req?.user)?.id).select('-password');
+        // Access user from req.user which is set in the isAuthenticated middleware
+        if (!req.user) {
+            return res.status(401).json({ message: "Not authenticated" });
+        }
+        // Use _id property to find the user
+        const user = await user_model_1.User.findById(req.user._id).select('-password');
         if (!user)
             return res.status(404).json({ message: "User not found" });
         return res.json(user);
     }
     catch (error) {
+        console.error('Error in getMe:', error);
         return res.status(500).json({ message: "Error fetching user", error });
     }
 };

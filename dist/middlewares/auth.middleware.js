@@ -17,10 +17,12 @@ const isAuthenticated = async (req, res, next) => {
         const user = await user_model_1.User.findById(decoded.id);
         if (!user)
             throw new Error();
+        // Ensure user is attached to request properly
         req.user = user;
         next();
     }
-    catch {
+    catch (error) {
+        console.error('Authentication error:', error);
         res.status(401).json({ message: 'Invalid token' });
     }
 };
@@ -33,3 +35,4 @@ const isAdmin = (req, res, next) => {
     next();
 };
 exports.isAdmin = isAdmin;
+// git push

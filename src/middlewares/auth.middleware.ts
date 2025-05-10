@@ -13,9 +13,11 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     const user = await User.findById(decoded.id);
     if (!user) throw new Error();
+    // Ensure user is attached to request properly
     (req as any).user = user;
     next();
-  } catch {
+  } catch (error) {
+    console.error('Authentication error:', error);
     res.status(401).json({ message: 'Invalid token' });
   }
 };
@@ -27,3 +29,4 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction): void =
   }
   next();
 };
+// git push

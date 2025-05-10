@@ -32,19 +32,36 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   }
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1d' });
-  return res.cookie('token', token, { httpOnly: true }).json({ user });
+  return res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+    maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
+  }).json({ user });
 };
 
 export const logout = (req: Request, res: Response): Response => {
-  return res.clearCookie('token').json({ message: 'Logged out' });
+  return res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true
+  }).json({ message: 'Logged out' });
 };
 
 export const getMe = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const user = await User.findById((req?.user)?._id as string).select('-password');
+    // Access user from req.user which is set in the isAuthenticated middleware
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Use _id property to find the user
+    const user = await User.findById((req.user as any)._id).select('-password');
     if (!user) return res.status(404).json({ message: "User not found" });
+
     return res.json(user);
   } catch (error) {
+    console.error('Error in getMe:', error);
     return res.status(500).json({ message: "Error fetching user", error });
   }
 };

@@ -9,7 +9,8 @@ const cors_1 = __importDefault(require("cors"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const post_routes_1 = __importDefault(require("./routes/post.routes"));
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({
+// Configure CORS with all necessary options
+const corsOptions = {
     origin: [
         "http://localhost:8080",
         "http://localhost:8081",
@@ -20,7 +21,12 @@ app.use((0, cors_1.default)({
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "credentials"],
-}));
+    exposedHeaders: ["set-cookie"]
+};
+// Apply CORS middleware
+app.use((0, cors_1.default)(corsOptions));
+// Handle OPTIONS preflight requests
+app.options('*', (0, cors_1.default)(corsOptions));
 // Increase the limit for JSON payloads (50MB)
 app.use(express_1.default.json({ limit: "50mb" }));
 // Also increase the limit for URL-encoded payloads
